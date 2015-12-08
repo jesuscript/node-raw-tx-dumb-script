@@ -1,44 +1,38 @@
-var Transaction = require('ethereumjs-tx');
-                 
-var request = require("request");
+var Tx = require('ethereumjs-tx'),
+    BN = require('bn.js'),
+    ethUtils = require("ethereumjs-util"),
+    Web3 = require("web3");
 
 
-var tx = new Transaction();
 
-tx.nonce = 0;
-tx.gasPrice = 1000;
-tx.gasLimit = 1000000;
-tx.value = 0;
-tx.data = '0x7f4e616d65526567000000000000000000000000000000000000000000000000003057307f4e616d6552656700000000000000000000000000000000000000000000000000573360455760415160566000396000f20036602259604556330e0f600f5933ff33560f601e5960003356576000335700604158600035560f602b590033560f60365960003356573360003557600035335700';
+var web3 = new Web3();
+web3.setProvider(new web3.providers.HttpProvider('http://46.101.74.242:8545'));
+
+console.log("block:", web3.eth.getBlock("latest"));
 
 var privateKey = new Buffer('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109',
                             'hex');
+var address = ethUtils.privateToAddress(privateKey).toString("hex");
 
+var sendAmount  = 100000,
+    hexAmt = '0' + sendAmount.toString(16);
+
+
+
+console.log("address:",address);
+console.log("balance:", web3.fromWei(web3.eth.getBalance("0x"+address).toString(), "ether"), "ether");
+console.log("hexAmt:", hexAmt);
+
+var tx = new Tx();
+tx.to = '0xffa19aeec96ef7b4a41448ba8fec37168edcab63';
+tx.gasPrice = '0x' + web3.eth.gasPrice.toString(16);
+tx.gasLimit = 21000;
+tx.nonce = "0x007";
+
+tx.value = new BN(new Buffer(hexAmt, 'hex')).add(tx.getUpfrontCost());
 tx.sign(privateKey);
 
-console.log('Total Amount of wei needed:' + tx.getUpfrontCost().toString());
-
-console.log("base fee, data fee:",tx.getBaseFee().toString(),tx.getDataFee().toString());
-console.log("TX valid:",tx.validate());
-
-var serializedTx = tx.serialize();
-
-console.log('---Serialized TX----');
-console.log(tx.serialize().toString('hex'));
-console.log('--------------------');
-
-
-
-request.post("http://178.62.15.250:8545", {
-  json: {
-    "jsonrpc":"2.0",
-    "method":"eth_sendRawTransaction",
-    "params":[
-      //{data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"}
-      { data: serializedTx }
-    ],
-    "id":1
-  }
-},function(err, res, body){
-  console.log(body);
+web3.eth.sendRawTransaction('0x' + tx.serialize().toString('hex'), function (err, r) {
+  console.log(err);
+  console.log(r);
 });

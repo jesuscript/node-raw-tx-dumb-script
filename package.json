@@ -2,7 +2,8 @@
   "dependencies": {
     "ethereumjs-tx": "^0.6.11",
     "lodash": "~3.10.1",
-    "request": "~2.67.0",
-    "web3": "^0.15.1"
+    "web3": "^0.15.1",
+    "ethereumjs-util": "^2.3.2",
+    "bn.js": "^4.5.0"
   }
 }
